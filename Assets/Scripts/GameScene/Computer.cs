@@ -8,7 +8,6 @@ public class Computer : MonoBehaviour
     [SerializeField] private GameManager gameManager;
     [SerializeField] private TileGrid grid;
     [SerializeField] private TileBoard board;
-    private TileCell cellChoose;
 
     private List<TileCell> listCanSelectCells;
     private List<List<TileCell>> listCanTargetCells;
@@ -25,39 +24,17 @@ public class Computer : MonoBehaviour
         int maxScore = 0;
         int selectCellId = 0;
         int targetCellId = 0;
-        listCanSelectCells.Clear();
-        listCanTargetCells.Clear();
 
-        foreach(TileCell cell in grid.cells)
-        {
-            if(gameManager.turn == GameManager.Turn.Sun && (cell.Empty || cell.tile.isSun) && grid.CanSelected(cell))
-            {
-                listCanSelectCells.Add(cell);
-            }
-            else if(gameManager.turn == GameManager.Turn.Moon && (cell.Empty || cell.tile.isMoon) && grid.CanSelected(cell))
-            {
-                listCanSelectCells.Add(cell);
-            }
-        }
-        for(int i=0; i<listCanSelectCells.Count; i++)
-        {
-            List<TileCell> listCells = new List<TileCell>();
-            foreach(TileCell cellTarget in grid.cells)
-            {
-                if(grid.CanSwap(listCanSelectCells[i], cellTarget))
-                {
-                    listCells.Add(cellTarget);
-                }
-            }
-            listCanTargetCells.Add(listCells);
-        }
+        FindAllAvailableMoves();
 
+        // Easy
         if(GameSetting.Instance.playerLevel == GameSetting.Level.Easy)
         {
-            System.Random rnd = new System.Random();
-            selectCellId = rnd.Next(listCanSelectCells.Count-1);
-            targetCellId = rnd.Next(listCanTargetCells[selectCellId].Count - 1);
+            System.Random random = new System.Random();
+            selectCellId = random.Next(listCanSelectCells.Count-1);
+            targetCellId = random.Next(listCanTargetCells[selectCellId].Count - 1);
         }
+        // Hard
         else
         {
             if(gameManager.turn == GameManager.Turn.Sun)
@@ -68,7 +45,8 @@ public class Computer : MonoBehaviour
                     {
                         Debug.Log("CheckSunScore: " + listCanSelectCells[i].coordinates + " || " + listCanTargetCells[i][j].coordinates);
                         int newScore = CheckSunScore(listCanSelectCells[i], listCanTargetCells[i][j]);
-                        if(newScore > maxScore)
+                        System.Random random = new System.Random();
+                        if (newScore > maxScore || (newScore == maxScore && random.Next(2) == 1))
                         {
                             maxScore = newScore;
                             selectCellId = i;
@@ -114,45 +92,141 @@ public class Computer : MonoBehaviour
     {
         int maxScore = 0;
         string text = "";
-        for (int i = 0; i < 5; i++)
+        for(int i = 0; i < 5; i++)
         {
             int rowScore = 0;
             int colScore = 0;
 
-            for (int j = 0; j < 5; j++)
+            for(int j = 0; j < 5; j++)
             {
+                // row
+                // attack
                 if(grid.GetCell(cellTarget.coordinates.x, j).tile.isSun)
                 {
-                    rowScore++;
-                    if(cellTarget.coordinates.x != cellSelect.coordinates.x) rowScore++;
+                    rowScore += 3;
+                    if(cellTarget.coordinates.x != cellSelect.coordinates.x) rowScore += 2;
+
+                    for(int k = 0; k < 5; k++)
+                    {
+                        if(cellTarget.coordinates.x == 0 && grid.GetCell(cellTarget.coordinates.x+1, k).tile.isSun) 
+                        {
+                            rowScore += 3;
+                            if(cellTarget.coordinates.y != k) rowScore++;
+                        }
+                        else if(cellTarget.coordinates.x == 4 && grid.GetCell(cellTarget.coordinates.x-1, k).tile.isSun) 
+                        {
+                            rowScore += 3;
+                            if(cellTarget.coordinates.y != k) rowScore++;
+                        }
+                    }
                 }
-                else if(grid.GetCell(cellTarget.coordinates.x, j).tile.isMoon)
+                else if(cellTarget.coordinates.x == 0 && grid.GetCell(cellTarget.coordinates.x+1, j).tile.isSun)
                 {
-                    rowScore++;
-                    if(j == cellTarget.coordinates.y) rowScore++;
-                    if(cellTarget.coordinates.x != cellSelect.coordinates.x) rowScore++;
+                    for(int k = 0; k < 5; k++)
+                    {
+                        if(grid.GetCell(3, k).tile.isSun) 
+                        {
+                            rowScore += 2;
+                            if(cellTarget.coordinates.y != k) rowScore++;
+                        }
+                    }
                 }
+                else if(cellTarget.coordinates.x == 4 && grid.GetCell(cellTarget.coordinates.x-1, j).tile.isSun)
+                {
+                    for(int k = 0; k < 5; k++)
+                    {
+                        if(grid.GetCell(3, k).tile.isSun) 
+                        {
+                            rowScore += 2;
+                            if(cellTarget.coordinates.y != k) rowScore++;
+                        }
+                    }
+                }
+                // defense
                 else
                 {
+                    if(grid.GetCell(cellTarget.coordinates.x, j).tile.isMoon) rowScore += 3;
                     if(j == cellTarget.coordinates.y) rowScore++;
                     if(cellTarget.coordinates.x != cellSelect.coordinates.x) rowScore++;
+
+                    for(int k = 0; k < 5; k++)
+                    {
+                        if(cellTarget.coordinates.x == 0 && grid.GetCell(cellTarget.coordinates.x+1, k).tile.isMoon) 
+                        {
+                            rowScore -= 2;
+                            if(cellTarget.coordinates.y != k) rowScore++;
+                        }
+                        else if(cellTarget.coordinates.x == 4 && grid.GetCell(cellTarget.coordinates.x-1, k).tile.isMoon) 
+                        {
+                            rowScore -= 2;
+                            if(cellTarget.coordinates.y != k) rowScore++;
+                        }
+                    }
                 }
 
+                // col
+                // attack
                 if(grid.GetCell(j, cellTarget.coordinates.y).tile.isSun)
                 {
-                    colScore++;
-                    if(cellTarget.coordinates.y != cellSelect.coordinates.y) colScore++;
+                    colScore += 3;
+                    if(cellTarget.coordinates.y != cellSelect.coordinates.y) colScore += 2;
+
+                    for(int k = 0; k < 5; k++)
+                    {
+                        if(cellTarget.coordinates.y == 0 && grid.GetCell(k, cellTarget.coordinates.y+1).tile.isSun) 
+                        {
+                            colScore += 3;
+                            if(cellTarget.coordinates.x != k) colScore++;
+                        }
+                        else if(cellTarget.coordinates.y == 4 && grid.GetCell(k, cellTarget.coordinates.y-1).tile.isSun) 
+                        {
+                            colScore += 3;
+                            if(cellTarget.coordinates.x != k) colScore++;
+                        }
+                    }
                 }
-                else if(grid.GetCell(j, cellTarget.coordinates.y).tile.isMoon)
+                else if(cellTarget.coordinates.y == 0 && grid.GetCell(j, cellTarget.coordinates.y+1).tile.isSun)
                 {
-                    colScore++;
-                    if(j == cellTarget.coordinates.x) colScore++;
-                    if(cellTarget.coordinates.y != cellSelect.coordinates.y) colScore++;
+                    for(int k = 0; k < 5; k++)
+                    {
+                        if(grid.GetCell(k, 3).tile.isSun) 
+                        {
+                            colScore += 2;
+                            if(cellTarget.coordinates.x != k) colScore++;
+                        }
+                    }
                 }
+                else if(cellTarget.coordinates.y == 4 && grid.GetCell(j, cellTarget.coordinates.y-1).tile.isSun)
+                {
+                    for(int k = 0; k < 5; k++)
+                    {
+                        if(grid.GetCell(k, 3).tile.isSun) 
+                        {
+                            colScore += 2;
+                            if(cellTarget.coordinates.x != k) colScore++;
+                        }
+                    }
+                }
+                // defense
                 else
                 {
+                    if(grid.GetCell(j, cellTarget.coordinates.y).tile.isMoon) colScore += 3;
                     if(j == cellTarget.coordinates.x) colScore++;
                     if(cellTarget.coordinates.y != cellSelect.coordinates.y) colScore++;
+
+                    for(int k = 0; k < 5; k++)
+                    {
+                        if(cellTarget.coordinates.y == 0 && grid.GetCell(k, cellTarget.coordinates.y+1).tile.isMoon) 
+                        {
+                            colScore -= 2;
+                            if(cellTarget.coordinates.x != k) colScore++;
+                        }
+                        else if(cellTarget.coordinates.y == 4 && grid.GetCell(k, cellTarget.coordinates.y-1).tile.isMoon) 
+                        {
+                            colScore -= 2;
+                            if(cellTarget.coordinates.x != k) colScore++;
+                        }
+                    }
                 }
             }
             if(rowScore >= colScore) 
@@ -168,7 +242,7 @@ public class Computer : MonoBehaviour
         }
 
         int mainDiagonalScore = 0;
-        for (int i = 0; i < 5; i++)
+        for(int i = 0; i < 5; i++)
         {
             if(grid.GetCell(i, i).tile.isSun)
             {
@@ -191,7 +265,7 @@ public class Computer : MonoBehaviour
         }
 
         int antiDiagonalScore = 0;
-        for (int i = 0; i < 5; i++)
+        for(int i = 0; i < 5; i++)
         {
             if(grid.GetCell(i, 4 - i).tile.isSun)
             {
@@ -222,45 +296,141 @@ public class Computer : MonoBehaviour
     {
         int maxScore = 0;
         string text = "";
-        for (int i = 0; i < 5; i++)
+        for(int i = 0; i < 5; i++)
         {
             int rowScore = 0;
             int colScore = 0;
 
-            for (int j = 0; j < 5; j++)
+            for(int j = 0; j < 5; j++)
             {
+                // row
+                // attack
                 if(grid.GetCell(cellTarget.coordinates.x, j).tile.isMoon)
                 {
-                    rowScore++;
-                    if(cellTarget.coordinates.x != cellSelect.coordinates.x) rowScore++;
+                    rowScore += 3;
+                    if(cellTarget.coordinates.x != cellSelect.coordinates.x) rowScore += 2;
+
+                    for(int k = 0; k < 5; k++)
+                    {
+                        if(cellTarget.coordinates.x == 0 && grid.GetCell(cellTarget.coordinates.x+1, k).tile.isMoon) 
+                        {
+                            rowScore += 3;
+                            if(cellTarget.coordinates.y != k) rowScore++;
+                        }
+                        else if(cellTarget.coordinates.x == 4 && grid.GetCell(cellTarget.coordinates.x-1, k).tile.isMoon) 
+                        {
+                            rowScore += 3;
+                            if(cellTarget.coordinates.y != k) rowScore++;
+                        }
+                    }
                 }
-                else if(grid.GetCell(cellTarget.coordinates.x, j).tile.isSun)
+                else if(cellTarget.coordinates.x == 0 && grid.GetCell(cellTarget.coordinates.x+1, j).tile.isMoon)
                 {
-                    rowScore++;
-                    if(j == cellTarget.coordinates.y) rowScore++;
-                    if(cellTarget.coordinates.x != cellSelect.coordinates.x) rowScore++;
+                    for(int k = 0; k < 5; k++)
+                    {
+                        if(grid.GetCell(3, k).tile.isMoon) 
+                        {
+                            rowScore += 2;
+                            if(cellTarget.coordinates.y != k) rowScore++;
+                        }
+                    }
                 }
+                else if(cellTarget.coordinates.x == 4 && grid.GetCell(cellTarget.coordinates.x-1, j).tile.isMoon)
+                {
+                    for(int k = 0; k < 5; k++)
+                    {
+                        if(grid.GetCell(3, k).tile.isMoon) 
+                        {
+                            rowScore += 2;
+                            if(cellTarget.coordinates.y != k) rowScore++;
+                        }
+                    }
+                }
+                // defense
                 else
                 {
+                    if(grid.GetCell(cellTarget.coordinates.x, j).tile.isSun) rowScore += 3;
                     if(j == cellTarget.coordinates.y) rowScore++;
                     if(cellTarget.coordinates.x != cellSelect.coordinates.x) rowScore++;
+
+                    for(int k = 0; k < 5; k++)
+                    {
+                        if(cellTarget.coordinates.x == 0 && grid.GetCell(cellTarget.coordinates.x+1, k).tile.isMoon) 
+                        {
+                            rowScore -= 2;
+                            if(cellTarget.coordinates.y != k) rowScore++;
+                        }
+                        else if(cellTarget.coordinates.x == 4 && grid.GetCell(cellTarget.coordinates.x-1, k).tile.isMoon) 
+                        {
+                            rowScore -= 2;
+                            if(cellTarget.coordinates.y != k) rowScore++;
+                        }
+                    }
                 }
 
+                // col
+                // attack
                 if(grid.GetCell(j, cellTarget.coordinates.y).tile.isMoon)
                 {
-                    colScore++;
-                    if(cellTarget.coordinates.y != cellSelect.coordinates.y) colScore++;
+                    colScore += 3;
+                    if(cellTarget.coordinates.y != cellSelect.coordinates.y) colScore += 2;
+
+                    for(int k = 0; k < 5; k++)
+                    {
+                        if(cellTarget.coordinates.y == 0 && grid.GetCell(k, cellTarget.coordinates.y+1).tile.isMoon) 
+                        {
+                            colScore += 3;
+                            if(cellTarget.coordinates.x != k) colScore++;
+                        }
+                        else if(cellTarget.coordinates.y == 4 && grid.GetCell(k, cellTarget.coordinates.y-1).tile.isMoon) 
+                        {
+                            colScore += 3;
+                            if(cellTarget.coordinates.x != k) colScore++;
+                        }
+                    }
                 }
-                else if(grid.GetCell(j, cellTarget.coordinates.y).tile.isSun)
+                else if(cellTarget.coordinates.y == 0 && grid.GetCell(j, cellTarget.coordinates.y+1).tile.isMoon)
                 {
-                    colScore++;
-                    if(j == cellTarget.coordinates.x) colScore++;
-                    if(cellTarget.coordinates.y != cellSelect.coordinates.y) colScore++;
+                    for(int k = 0; k < 5; k++)
+                    {
+                        if(grid.GetCell(k, 3).tile.isMoon) 
+                        {
+                            colScore += 2;
+                            if(cellTarget.coordinates.x != k) colScore++;
+                        }
+                    }
                 }
+                else if(cellTarget.coordinates.y == 4 && grid.GetCell(j, cellTarget.coordinates.y-1).tile.isMoon)
+                {
+                    for(int k = 0; k < 5; k++)
+                    {
+                        if(grid.GetCell(k, 3).tile.isMoon) 
+                        {
+                            colScore += 2;
+                            if(cellTarget.coordinates.x != k) colScore++;
+                        }
+                    }
+                }
+                // defense
                 else
                 {
+                    if(grid.GetCell(j, cellTarget.coordinates.y).tile.isSun) colScore += 3;
                     if(j == cellTarget.coordinates.x) colScore++;
                     if(cellTarget.coordinates.y != cellSelect.coordinates.y) colScore++;
+
+                    for(int k = 0; k < 5; k++)
+                    {
+                        if(cellTarget.coordinates.y == 0 && grid.GetCell(k, cellTarget.coordinates.y+1).tile.isSun) 
+                        {
+                            colScore -= 2;
+                            if(cellTarget.coordinates.x != k) colScore++;
+                        }
+                        else if(cellTarget.coordinates.y == 4 && grid.GetCell(k, cellTarget.coordinates.y-1).tile.isSun) 
+                        {
+                            colScore -= 2;
+                            if(cellTarget.coordinates.x != k) colScore++;
+                        }
+                    }
                 }
             }
             if(rowScore >= colScore) 
@@ -276,7 +446,7 @@ public class Computer : MonoBehaviour
         }
 
         int mainDiagonalScore = 0;
-        for (int i = 0; i < 5; i++)
+        for(int i = 0; i < 5; i++)
         {
             if(grid.GetCell(i, i).tile.isMoon)
             {
@@ -299,7 +469,7 @@ public class Computer : MonoBehaviour
         }
 
         int antiDiagonalScore = 0;
-        for (int i = 0; i < 5; i++)
+        for(int i = 0; i < 5; i++)
         {
             if(grid.GetCell(i, 4 - i).tile.isMoon)
             {
@@ -326,6 +496,36 @@ public class Computer : MonoBehaviour
         return maxScore;
     }
 
+    private void FindAllAvailableMoves()
+    {
+        listCanSelectCells.Clear();
+        listCanTargetCells.Clear();
+
+        foreach(TileCell cell in grid.cells)
+        {
+            if(gameManager.turn == GameManager.Turn.Sun && (cell.Empty || cell.tile.isSun) && grid.CanSelected(cell))
+            {
+                listCanSelectCells.Add(cell);
+            }
+            else if(gameManager.turn == GameManager.Turn.Moon && (cell.Empty || cell.tile.isMoon) && grid.CanSelected(cell))
+            {
+                listCanSelectCells.Add(cell);
+            }
+        }
+        for(int i=0; i<listCanSelectCells.Count; i++)
+        {
+            List<TileCell> listCells = new List<TileCell>();
+            foreach(TileCell cellTarget in grid.cells)
+            {
+                if(grid.CanSwap(listCanSelectCells[i], cellTarget))
+                {
+                    listCells.Add(cellTarget);
+                }
+            }
+            listCanTargetCells.Add(listCells);
+        }
+    }
+    
     private void OnDisable()
     {
         GameManager.OnComputerTurn -= OnComputerTurn;

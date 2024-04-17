@@ -11,6 +11,7 @@ public class TileBoard : MonoBehaviour
     [SerializeField] private GameObject canLockPrefab;
     [SerializeField] private GameObject lockedPrefab;
 
+    private float delta = 1.1f;
     private TileGrid grid;
     private List<Tile> tiles;
     private List<GameObject> canTargets;
@@ -57,7 +58,7 @@ public class TileBoard : MonoBehaviour
         }
     }
 
-    public void ShowCanLockCell(TileCell cellTarget)
+    private void CreateSymbols(TileCell cell, GameObject prefab, List<GameObject> list)
     {
         foreach(GameObject canLock in canLocks)
         {
@@ -70,71 +71,50 @@ public class TileBoard : MonoBehaviour
         }
         lockeds.Clear();
 
-        if(cellTarget.coordinates.x == 0)
-        {
-            GameObject available = Instantiate(canLockPrefab, grid.transform);
-            available.transform.position = cellTarget.transform.position + new Vector3(0,1,0);
-            canLocks.Add(available);
-        }
-        else if(cellTarget.coordinates.x == 4)
-        {
-            GameObject available = Instantiate(canLockPrefab, grid.transform);
-            available.transform.position = cellTarget.transform.position - new Vector3(0,1,0);
-            canLocks.Add(available);
-        }
+        CreateSymbolsX(cell, prefab, list);
+        CreateSymbolsY(cell, prefab, list);
+    }
 
-        if(cellTarget.coordinates.y == 0)
+    private void CreateSymbolsY(TileCell cell, GameObject prefab, List<GameObject> list)
+    {
+        if(cell.coordinates.y == 0)
         {
-            GameObject available = Instantiate(canLockPrefab, grid.transform);
-            available.transform.position = cellTarget.transform.position - new Vector3(1,0,0);
-            canLocks.Add(available);
+            GameObject available = Instantiate(prefab, grid.transform);
+            available.transform.position = cell.transform.position - new Vector3(delta, 0, 0);
+            list.Add(available);
         }
-        else if(cellTarget.coordinates.y == 4)
+        else if(cell.coordinates.y == 4)
         {
-            GameObject available = Instantiate(canLockPrefab, grid.transform);
-            available.transform.position = cellTarget.transform.position + new Vector3(1,0,0);
-            canLocks.Add(available);
+            GameObject available = Instantiate(prefab, grid.transform);
+            available.transform.position = cell.transform.position + new Vector3(delta, 0, 0);
+            list.Add(available);
         }
+    }
+
+    private void CreateSymbolsX(TileCell cell, GameObject prefab, List<GameObject> list)
+    {
+        if(cell.coordinates.x == 0)
+        {
+            GameObject available = Instantiate(prefab, grid.transform);
+            available.transform.position = cell.transform.position + new Vector3(0, delta, 0);
+            list.Add(available);
+        }
+        else if(cell.coordinates.x == 4)
+        {
+            GameObject available = Instantiate(prefab, grid.transform);
+            available.transform.position = cell.transform.position - new Vector3(0, delta, 0);
+            list.Add(available);
+        }
+    }
+
+    public void ShowCanLockCell(TileCell cellTarget)
+    {
+        CreateSymbols(cellTarget, canLockPrefab, canLocks);
     }
 
     public void ShowLockedCell(TileCell cellTarget)
     {
-        foreach(GameObject canLock in canLocks)
-        {
-            Destroy(canLock);
-        }
-        canLocks.Clear();
-        foreach(GameObject locked in lockeds)
-        {
-            Destroy(locked);
-        }
-        lockeds.Clear();
-
-        if(cellTarget.coordinates.x == 0)
-        {
-            GameObject available = Instantiate(lockedPrefab, grid.transform);
-            available.transform.position = cellTarget.transform.position + new Vector3(0,1,0);
-            lockeds.Add(available);
-        }
-        else if(cellTarget.coordinates.x == 4)
-        {
-            GameObject available = Instantiate(lockedPrefab, grid.transform);
-            available.transform.position = cellTarget.transform.position - new Vector3(0,1,0);
-            lockeds.Add(available);
-        }
-
-        if(cellTarget.coordinates.y == 0)
-        {
-            GameObject available = Instantiate(lockedPrefab, grid.transform);
-            available.transform.position = cellTarget.transform.position - new Vector3(1,0,0);
-            lockeds.Add(available);
-        }
-        else if(cellTarget.coordinates.y == 4)
-        {
-            GameObject available = Instantiate(lockedPrefab, grid.transform);
-            available.transform.position = cellTarget.transform.position + new Vector3(1,0,0);
-            lockeds.Add(available);
-        }
+        CreateSymbols(cellTarget, lockedPrefab, lockeds);
     }
 
     public void ShowCanTargetCell(TileCell cellChoose, bool show)
@@ -147,33 +127,11 @@ public class TileBoard : MonoBehaviour
                 {
                     if(cell.coordinates.x == cellChoose.coordinates.x)
                     {
-                        if(cell.coordinates.y == 0)
-                        {
-                            GameObject available = Instantiate(canTargetPrefab, grid.transform);
-                            available.transform.position = cell.transform.position - new Vector3(1,0,0);
-                            canTargets.Add(available);
-                        }
-                        else if(cell.coordinates.y == 4)
-                        {
-                            GameObject available = Instantiate(canTargetPrefab, grid.transform);
-                            available.transform.position = cell.transform.position + new Vector3(1,0,0);
-                            canTargets.Add(available);
-                        }
+                        CreateSymbolsY(cell, canTargetPrefab, canTargets);
                     }
                     if(cell.coordinates.y == cellChoose.coordinates.y)
                     {
-                        if(cell.coordinates.x == 0)
-                        {
-                            GameObject available = Instantiate(canTargetPrefab, grid.transform);
-                            available.transform.position = cell.transform.position + new Vector3(0,1,0);
-                            canTargets.Add(available);
-                        }
-                        else if(cell.coordinates.x == 4)
-                        {
-                            GameObject available = Instantiate(canTargetPrefab, grid.transform);
-                            available.transform.position = cell.transform.position - new Vector3(0,1,0);
-                            canTargets.Add(available);
-                        }
+                        CreateSymbolsX(cell, canTargetPrefab, canTargets);
                     }
                 }
             }

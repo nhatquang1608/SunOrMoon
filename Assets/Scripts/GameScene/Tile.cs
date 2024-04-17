@@ -77,7 +77,7 @@ public class Tile : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUp
 
         foreach(TileCell cellTarget in grid.cells)
         {
-            if(Vector2.Distance(transform.position, cellTarget.transform.position) < 0.2)
+            if(Vector2.Distance(transform.position, cellTarget.transform.position) < 0.5)
             {
                 if(grid.CanSwap(cell, cellTarget)) 
                 {
