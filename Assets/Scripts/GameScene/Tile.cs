@@ -31,15 +31,18 @@ public class Tile : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUp
     public void OnPointerDown(PointerEventData eventData)
     {
         if(board.waiting || GameSetting.Instance.playerType != GameSetting.PlayerType.Human) return;
+
         if(gameManager.turn == GameManager.Turn.Sun && (cell.Empty || isSun) && grid.CanSelected(cell))
         {
             SetSun();
             isSelected = true;
+            SoundManager.Instance.PlaySound(SoundManager.Instance.touchSound);
         }
         else if(gameManager.turn == GameManager.Turn.Moon && (cell.Empty || isMoon) && grid.CanSelected(cell))
         {
             SetMoon();
             isSelected = true;
+            SoundManager.Instance.PlaySound(SoundManager.Instance.touchSound);
         }
         else 
         {
@@ -63,7 +66,7 @@ public class Tile : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUp
         Vector3 touchPosition = Camera.main.ScreenToWorldPoint(eventData.position);
         touchPosition.z = 1;
         transform.position = touchPosition - delta;
-        tileDemo.position = transform.position;
+        if(tileDemo) tileDemo.position = transform.position;
     }
 
     public void OnPointerUp (PointerEventData eventData)
@@ -72,19 +75,20 @@ public class Tile : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUp
         if(tileDemo) Destroy(tileDemo.gameObject);
         board.ShowCanTargetCell(cell, false);
 
-        foreach(TileCell gcell in grid.cells)
+        foreach(TileCell cellTarget in grid.cells)
         {
-            if(Vector2.Distance(transform.position, gcell.transform.position) < 0.2)
+            if(Vector2.Distance(transform.position, cellTarget.transform.position) < 0.2)
             {
-                if(grid.CanSwap(cell, gcell)) 
+                if(grid.CanSwap(cell, cellTarget)) 
                 {
-                    board.Swap(cell, gcell);
+                    board.Swap(cell, cellTarget);
                     isSelected = false;
                     return;
                 }
             }
         }
 
+        SoundManager.Instance.PlaySound(SoundManager.Instance.releaseSound);
         transform.position = initPosition;
         if(isDefault) SetDefault();
         isSelected = false;
@@ -112,10 +116,28 @@ public class Tile : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUp
         transform.position = cell.transform.position;
     }
 
-    public IEnumerator Animate(TileCell to)
+    public IEnumerator Animate(TileCell to, float time)
     {
-        transform.DOMove(to.transform.position, 0.1f);
-        yield return new WaitForSeconds(0.1f);
+        transform.DOMove(to.transform.position, time);
+        yield return new WaitForSeconds(time);
+    }
+
+    public IEnumerator Animate(TileCell to, float time, bool createDemo)
+    {
+        Transform demo = null;
+        if(createDemo)
+        {
+            demo = Instantiate(transform, grid.transform);
+            demo.position = transform.position;
+        }
+        demo.DOMove(to.transform.position, time);
+        transform.DOMove(to.transform.position, time);
+        if(time < 1) SoundManager.Instance.PlaySound(SoundManager.Instance.swapSound);
+
+        yield return new WaitForSeconds(1);
+
+        if(time >= 1) SoundManager.Instance.PlaySound(SoundManager.Instance.swapSound);
+        Destroy(demo.gameObject);
     }
 
     public void SetSun()

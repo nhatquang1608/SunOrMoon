@@ -20,6 +20,16 @@ public class SelectSceneManager : MonoBehaviour
         GameSetting.Instance.playerValue = GameSetting.PlayerValue.Moon;
     }
 
+    public void SetPlayerLevelEasy()
+    {
+        GameSetting.Instance.playerLevel = GameSetting.Level.Easy;
+    }
+
+    public void SetPlayerLevelHard()
+    {
+        GameSetting.Instance.playerLevel = GameSetting.Level.Hard;
+    }
+
     public void PlayGame()
     {
         if(GameSetting.Instance.playerValue != GameSetting.PlayerValue.None) SceneManager.LoadScene("GameScene");

@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class TileBoard : MonoBehaviour
 {
-    public int count;
     [SerializeField] private GameManager gameManager;
     [SerializeField] private Tile tilePrefab;
 
@@ -18,11 +17,12 @@ public class TileBoard : MonoBehaviour
     private List<GameObject> canLocks;
     private List<GameObject> lockeds;
     public bool waiting;
+    public bool gameOver;
 
     private void Awake()
     {
         grid = GetComponentInChildren<TileGrid>();
-        tiles = new List<Tile>(count);
+        tiles = new List<Tile>();
 
         canTargets = new List<GameObject>();
         canLocks = new List<GameObject>();
@@ -232,7 +232,14 @@ public class TileBoard : MonoBehaviour
         }
 
         // Swap
-        cellChoose.tile.transform.position = cellTarget.tile.transform.position;
+        if(GameSetting.Instance.playerType == GameSetting.PlayerType.Human) 
+        {
+            StartCoroutine(cellChoose.tile.Animate(cellTarget, 0.1f, true));
+        }
+        else if(GameSetting.Instance.playerType == GameSetting.PlayerType.Computer) 
+        {
+            StartCoroutine(cellChoose.tile.Animate(cellTarget, 1, true));
+        }
         Tile tile = cellChoose.tile;
 
         if(cellChoose.coordinates.y > cellTarget.coordinates.y)
@@ -241,7 +248,7 @@ public class TileBoard : MonoBehaviour
             {
                 TileCell cella = grid.GetCell(cellChoose.coordinates.x, i);
                 TileCell cellb = grid.GetCell(cellChoose.coordinates.x, i-1);
-                StartCoroutine(cellb.tile.Animate(cella));
+                StartCoroutine(cellb.tile.Animate(cella, 1));
                 cellb.tile.cell = cella;
                 cella.tile = cellb.tile;
             }
@@ -252,8 +259,7 @@ public class TileBoard : MonoBehaviour
             {
                 TileCell cella = grid.GetCell(cellChoose.coordinates.x, i);
                 TileCell cellb = grid.GetCell(cellChoose.coordinates.x, i+1);
-                cellb.tile.transform.position = cella.transform.position;
-                StartCoroutine(cellb.tile.Animate(cella));
+                StartCoroutine(cellb.tile.Animate(cella, 1));
                 cellb.tile.cell = cella;
                 cella.tile = cellb.tile;
             }
@@ -264,7 +270,7 @@ public class TileBoard : MonoBehaviour
             {
                 TileCell cella = grid.GetCell(i, cellChoose.coordinates.y);
                 TileCell cellb = grid.GetCell(i-1, cellChoose.coordinates.y);
-                StartCoroutine(cellb.tile.Animate(cella));
+                StartCoroutine(cellb.tile.Animate(cella, 1));
                 cellb.tile.cell = cella;
                 cella.tile = cellb.tile;
             }
@@ -275,7 +281,7 @@ public class TileBoard : MonoBehaviour
             {
                 TileCell cella = grid.GetCell(i, cellChoose.coordinates.y);
                 TileCell cellb = grid.GetCell(i+1, cellChoose.coordinates.y);
-                StartCoroutine(cellb.tile.Animate(cella));
+                StartCoroutine(cellb.tile.Animate(cella, 1));
                 cellb.tile.cell = cella;
                 cella.tile = cellb.tile;
             }
@@ -300,13 +306,15 @@ public class TileBoard : MonoBehaviour
     {
         CheckGameOver(turn);
 
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(1f);
 
         waiting = false;
+        if(!gameOver) gameManager.SwapTurn();
     }
 
     private void CheckGameOver(GameManager.Turn turn)
     {
+        gameOver = true;
         if(turn == GameManager.Turn.Sun)
         {
             if(CheckSunWin()) 
@@ -333,8 +341,7 @@ public class TileBoard : MonoBehaviour
                 return;
             }
         }
-
-        gameManager.SwapTurn();
+        gameOver = false;
     }
 
     private bool CheckSunWin()

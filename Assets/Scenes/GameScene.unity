@@ -2680,6 +2680,7 @@ GameObject:
   - component: {fileID: 1246876442}
   - component: {fileID: 1246876441}
   - component: {fileID: 1246876440}
+  - component: {fileID: 1246876443}
   m_Layer: 5
   m_Name: '[Button] Restart'
   m_TagString: Untagged
@@ -2801,6 +2802,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1246876438}
   m_CullTransparentMesh: 1
+--- !u!114 &1246876443
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1246876438}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7faee2c9070450a4eaa2eaafa8832c60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  button: {fileID: 0}
 --- !u!1 &1316495303
 GameObject:
   m_ObjectHideFlags: 0
@@ -2891,13 +2905,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2263f4048e4ee584abc4ce910c331908, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  count: 0
   gameManager: {fileID: 1382913820}
   tilePrefab: {fileID: 7280697964493053281, guid: d64df6cf9fdc93146911b08a54ed07d8, type: 3}
   canTargetPrefab: {fileID: 4078548043748277473, guid: 8c2bbddaee452c74e9dcf0aa9af0bbee, type: 3}
   canLockPrefab: {fileID: 4078548043748277473, guid: 9a2a13ae072a3ce4caf224359542b779, type: 3}
   lockedPrefab: {fileID: 4078548043748277473, guid: de59ae5a679928f4dae9aabc382a3231, type: 3}
   waiting: 0
+  gameOver: 0
 --- !u!1 &1356009901
 GameObject:
   m_ObjectHideFlags: 0
@@ -3024,6 +3038,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7e73d4cf9eb0644fa4d4816b269b973, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameManager: {fileID: 1382913820}
+  grid: {fileID: 1724059203}
+  board: {fileID: 1316495307}
 --- !u!1 &1387306621
 GameObject:
   m_ObjectHideFlags: 0
@@ -3747,6 +3764,7 @@ GameObject:
   - component: {fileID: 1880826385}
   - component: {fileID: 1880826384}
   - component: {fileID: 1880826383}
+  - component: {fileID: 1880826386}
   m_Layer: 5
   m_Name: '[Button] Restart'
   m_TagString: Untagged
@@ -3868,6 +3886,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1880826381}
   m_CullTransparentMesh: 1
+--- !u!114 &1880826386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1880826381}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7faee2c9070450a4eaa2eaafa8832c60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  button: {fileID: 0}
 --- !u!1001 &1909384366
 PrefabInstance:
   m_ObjectHideFlags: 0

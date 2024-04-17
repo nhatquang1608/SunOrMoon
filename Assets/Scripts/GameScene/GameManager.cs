@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using System;
-using UnityEditor.SearchService;
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
@@ -73,6 +72,13 @@ public class GameManager : MonoBehaviour
 
         popup.SetActive(false);
         goFirst.SetActive(false);
+
+        yield return new WaitForSeconds(1);
+
+        if(GameSetting.Instance.playerType == GameSetting.PlayerType.Computer) 
+        {
+            OnComputerTurn?.Invoke();
+        }
     }
 
     public void GameOver(bool sun)
@@ -83,10 +89,10 @@ public class GameManager : MonoBehaviour
         if(sun) sunWin.SetActive(true);
         else moonWin.SetActive(true);
 
-        StartCoroutine(Fade(gameOver, 1f, 1f));
+        StartCoroutine(Fade(gameOver, 1f, 1f, sun));
     }
 
-    private IEnumerator Fade(CanvasGroup canvasGroup, float to, float delay = 0f)
+    private IEnumerator Fade(CanvasGroup canvasGroup, float to, float delay = 0f, bool sun = false)
     {
         yield return new WaitForSeconds(delay);
 
@@ -102,6 +108,19 @@ public class GameManager : MonoBehaviour
         }
 
         canvasGroup.alpha = to;
+
+        if(GameSetting.Instance.playerValue == GameSetting.PlayerValue.Sun && sun)
+        {
+            SoundManager.Instance.PlaySound(SoundManager.Instance.completedSound);
+        }
+        else if(GameSetting.Instance.playerValue == GameSetting.PlayerValue.Moon && !sun)
+        {
+            SoundManager.Instance.PlaySound(SoundManager.Instance.completedSound);
+        }
+        else
+        {
+            SoundManager.Instance.PlaySound(SoundManager.Instance.failedSound);
+        }
     }
 
     public void SwapTurn()

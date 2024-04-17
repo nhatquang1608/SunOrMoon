@@ -8,8 +8,9 @@ public class SoundManager : MonoBehaviour
     public AudioClip clickSound;
     public AudioClip completedSound;
     public AudioClip failedSound;
-    public AudioClip mergeSound;
-    public AudioClip moveSound;
+    public AudioClip swapSound;
+    public AudioClip touchSound;
+    public AudioClip releaseSound;
     [SerializeField] private AudioSource audioSource;
 
     public void Awake()

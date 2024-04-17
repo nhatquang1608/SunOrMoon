@@ -14,6 +14,12 @@ public class GameSetting : MonoBehaviour
         Computer
     }
 
+    public enum Level
+    {
+        Easy,
+        Hard
+    }
+
     public enum PlayerValue
     {
         None,
@@ -23,6 +29,7 @@ public class GameSetting : MonoBehaviour
 
     public PlayerType playerType;
     public PlayerValue playerValue;
+    public Level playerLevel;
 
     public void Awake()
     {
